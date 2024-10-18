@@ -1,4 +1,5 @@
 import os
+import sys
 import platform
 import subprocess
 from datetime import datetime, timedelta
@@ -68,7 +69,8 @@ def main() -> None:
     with open("/etc/version", "r") as f:
         os_ver: str = f.readline()  # Current TrueNAS version
 
-    cur_path: Path = Path().parent.resolve()  # Getting current path
+    # Getting full path of current python file location
+    cur_path: Path = Path(sys.argv[0]).parent.resolve()
 
     # Path to save config file
     path2save: Path = cur_path.joinpath(file_name(host_name, os_ver))
