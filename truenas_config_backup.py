@@ -9,48 +9,47 @@ TIME_STR_FORMAT: str = "%Y%m%d%H%M%S" # String time format
 CUR_TIME: datetime = datetime.now() # Current time in datetime object
 
 def file_name(host_name: str, os_ver: str) -> str:
-    # time: str = datetime.now().strftime(TIME_STR_FORMAT)
     return f"{host_name}-TrueNAS-SCALE-{os_ver}-{CUR_TIME.strftime(TIME_STR_FORMAT)}.tar"
 
 
 def backup_command(path2save: Path) -> None:
-    """Running system command to backup config of the TrueNAS Scale system
-
-    Args:
-        path2save (Path): Full path as path object to save file
-    """
-
     try:
         # Backup config file as tar file
-        with tarfile.open(path2save, "w") as f_tar:
+        with tarfile.open(path2save, 'w') as f_tar:
             source_dir: str = "/data"
             for file_name in ["freenas-v1.db", "pwenc_secret"]:
                 f_tar.add(f"{source_dir}/{file_name}", arcname=file_name)
 
         # Print message of completion
         tmp_path: str = str(path2save).split("/")[-1]
-        print(f"Backup is completed as: {tmp_path}\nPath to file: {path2save}")
+        print(
+            f"Backup is completed as: {tmp_path}\nPath to file: {path2save}" 
+        )
 
     except os.error as e:
         print(f"Error creating backup: {e}")
 
 
 def del_old_config(cur_path: Path) -> None:
-    """Scan current directory to find previous config backups, and if it is
     try:
-        print("\nRemoveing old backups")
+        old_files_path: str = "" # List of old backup files to delete in string
         for file in cur_path.iterdir():
             # Only check if file suffix is "tar"
             if file.is_file() and file.suffix == ".tar":
                 # Extract time from file name
                 old_time: datetime = datetime.strptime(
+                    file.name.split("-")[-1].split(".")[0], 
                     TIME_STR_FORMAT
                 )
 
+                # Get time difference from current
                 td_delta: timedelta = CUR_TIME - old_time 
                 if td_delta.days > 14: # Get only file is older then 14 days
                     old_files_path += f" {file}"
 
+        if old_files_path != "":
+            print("\nRemoveing old backups")
+            os.remove(old_files_path) # Remove old backups
 
     except Exception as e:
         print(f"Error deleting old backups: {e}")
