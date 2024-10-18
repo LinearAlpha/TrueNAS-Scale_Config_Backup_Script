@@ -36,25 +36,21 @@ def backup_command(path2save: Path) -> None:
 
 
 def del_old_config(cur_path: Path) -> None:
+    """Scan current directory to find previous config backups, and if it is
     try:
-        old_files_path: str = "" # List of old backup files to delete in string
+        print("\nRemoveing old backups")
         for file in cur_path.iterdir():
             # Only check if file suffix is "tar"
             if file.is_file() and file.suffix == ".tar":
                 # Extract time from file name
                 old_time: datetime = datetime.strptime(
-                    file.name.split("-")[-1].split(".")[0], 
                     TIME_STR_FORMAT
                 )
 
-                # Get time difference from current
                 td_delta: timedelta = CUR_TIME - old_time 
                 if td_delta.days > 14: # Get only file is older then 14 days
                     old_files_path += f" {file}"
 
-        if old_files_path != "":
-            print("\nRemoveing old backups")
-            os.remove(old_files_path) # Remove old backups
 
     except Exception as e:
         print(f"Error deleting old backups: {e}")
