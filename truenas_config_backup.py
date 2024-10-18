@@ -1,7 +1,7 @@
 import os
 import sys
+import tarfile
 import platform
-import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -14,27 +14,24 @@ def file_name(host_name: str, os_ver: str) -> str:
 
 
 def backup_command(path2save: Path) -> None:
+    """Running system command to backup config of the TrueNAS Scale system
+
+    Args:
+        path2save (Path): Full path as path object to save file
+    """
+
     try:
-        # Backup command
-        subprocess.run(
-            [
-                "tar",
-                "-cf",
-                path2save,
-                "--directory=/data",
-                "freenas-v1.db",
-                "pwenc_secret",
-            ],
-            check=True,
-        )
+        # Backup config file as tar file
+        with tarfile.open(path2save, "w") as f_tar:
+            source_dir: str = "/data"
+            for file_name in ["freenas-v1.db", "pwenc_secret"]:
+                f_tar.add(f"{source_dir}/{file_name}", arcname=file_name)
 
         # Print message of completion
         tmp_path: str = str(path2save).split("/")[-1]
-        print(
-            f"Backup is completed as: {tmp_path}\nPath to file: {path2save}" 
-        )
+        print(f"Backup is completed as: {tmp_path}\nPath to file: {path2save}")
 
-    except subprocess.CalledProcessError as e:
+    except os.error as e:
         print(f"Error creating backup: {e}")
 
 
